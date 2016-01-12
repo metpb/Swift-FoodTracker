@@ -8,11 +8,13 @@
 
 import UIKit
 
-class ViewController: UIViewController, UITextFieldDelegate {
+class ViewController: UIViewController, UITextFieldDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 	
 	// MARK: Properties
 	@IBOutlet weak var nameTextField: UITextField!
 	@IBOutlet weak var mealNameLabel: UILabel!
+	@IBOutlet weak var photoImageView: UIImageView!
+	@IBOutlet weak var ratingControl: RatingControl!
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
@@ -31,11 +33,32 @@ class ViewController: UIViewController, UITextFieldDelegate {
 		mealNameLabel.text = textField.text
 	}
 	
-	// MARK: Actions
-	@IBAction func setDefaultLabelText(sender: UIButton) {
-		mealNameLabel.text = "Default Text"
+	// MARK: UIImagePickerControllerDelegate
+	func imagePickerControllerDidCancel(picker: UIImagePickerController) {
+		dismissViewControllerAnimated(true, completion: nil)
 	}
 	
-
+	func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
+		let selectedImage = info[UIImagePickerControllerOriginalImage] as! UIImage
+		photoImageView.image = selectedImage
+		dismissViewControllerAnimated(true, completion: nil)
+	}
+	
+	// MARK: Actions
+	@IBAction func selectImageFromPhotoLibrary(sender: UITapGestureRecognizer) {
+		// Hide the keyboard
+		nameTextField.resignFirstResponder()
+		
+		let imagePickerController = UIImagePickerController()
+		
+		// Picks an image from Photo Library, doesn't takes
+		imagePickerController.sourceType = .PhotoLibrary
+		
+		// Make sure ViewController is notified when the user picks an image.
+		imagePickerController.delegate = self
+		
+		presentViewController(imagePickerController, animated: true, completion: nil)
+	}
+	
 }
 
