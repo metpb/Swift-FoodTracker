@@ -8,13 +8,27 @@
 
 import UIKit
 
-class Meal {
+class Meal: NSObject, NSCoding {
 	
 	// MARK: Properties
 	
 	var name: String
 	var rating: Int
 	var photo: UIImage?
+	
+	// MARK: Archiving Paths
+	
+	static let DocumentsDirectory = NSFileManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask).first!
+	static let ArchiveURL = DocumentsDirectory.URLByAppendingPathComponent("meals")
+	
+
+	// MARK: Types
+	
+	struct PropertyKey {
+		static let nameKey = "name"
+		static let photoKey = "photo"
+		static let ratingKey = "rating"
+	}
 	
 
 	
@@ -25,9 +39,30 @@ class Meal {
 		self.rating = rating
 		self.photo = photo
 		
+		super.init()
+		
 		if name.isEmpty || rating < 0 {
 			return nil
 		}
+	}
+	
+	
+	// MARK: NSCoding
+	
+	func encodeWithCoder(aCoder: NSCoder) {
+		
+		aCoder.encodeObject(name, forKey: PropertyKey.nameKey)
+		aCoder.encodeObject(photo, forKey: PropertyKey.photoKey)
+		aCoder.encodeInteger(rating, forKey: PropertyKey.ratingKey)
+		
+	}
+	
+	required convenience init?(coder aDecoder: NSCoder) {
+		let name = aDecoder.decodeObjectForKey(PropertyKey.nameKey) as! String
+		let photo = aDecoder.decodeObjectForKey(PropertyKey.photoKey) as? UIImage
+		let rating = aDecoder.decodeIntegerForKey(PropertyKey.ratingKey)
+		
+		self.init(name: name, rating: rating, photo: photo)
 	}
 	
 }
