@@ -8,19 +8,35 @@
 
 import UIKit
 
-class ViewController: UIViewController, UITextFieldDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+class MealViewController: UIViewController, UITextFieldDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 	
 	// MARK: Properties
 	@IBOutlet weak var nameTextField: UITextField!
-	@IBOutlet weak var mealNameLabel: UILabel!
 	@IBOutlet weak var photoImageView: UIImageView!
 	@IBOutlet weak var ratingControl: RatingControl!
+	@IBOutlet weak var saveButton: UIBarButtonItem!
+
+	var meal: Meal?
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		
+		let urlConfig = NSURLSessionConfiguration.backgroundSessionConfigurationWithIdentifier("bgs")
+		urlConfig.sessionSendsLaunchEvents = true
+		urlConfig.discretionary = true
+		
 		nameTextField.delegate = self
+		
+		if let meal = meal {
+			navigationItem.title = meal.name
+			nameTextField.text = meal.name
+			photoImageView.image = meal.photo
+			ratingControl.rating = meal.rating
+		}
+
+		checkValidMealName() // Make sure the user enters a valid name
 	}
+	
 	
 	// MARK: UITextFieldDelegate
 	func textFieldShouldReturn(textField: UITextField) -> Bool {
@@ -30,7 +46,18 @@ class ViewController: UIViewController, UITextFieldDelegate, UIImagePickerContro
 	}
 	
 	func textFieldDidEndEditing(textField: UITextField) {
-		mealNameLabel.text = textField.text
+		
+		checkValidMealName()
+		navigationItem.title = textField.text
+	}
+	
+	func textFieldDidBeginEditing(textField: UITextField) {
+		saveButton.enabled = false
+	}
+	
+	func checkValidMealName() {
+		let text = nameTextField.text ?? ""
+		saveButton.enabled = !text.isEmpty
 	}
 	
 	// MARK: UIImagePickerControllerDelegate
@@ -44,7 +71,38 @@ class ViewController: UIViewController, UITextFieldDelegate, UIImagePickerContro
 		dismissViewControllerAnimated(true, completion: nil)
 	}
 	
+	
+	// MARK: Navigation
+	@IBAction func cancel(sender: UIBarButtonItem) {
+		
+		let isPresentingInMealMode = presentingViewController is UINavigationController
+		
+		if isPresentingInMealMode {
+			dismissViewControllerAnimated(true, completion: nil)
+		}
+		else {
+			navigationController!.popViewControllerAnimated(true)
+		}
+		
+	}
+	
+	override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+		
+		if saveButton === sender {
+			
+			let name = nameTextField.text ?? ""
+			let photo = photoImageView.image
+			let rating = ratingControl.rating
+			
+			meal = Meal(name: name, rating: rating, photo: photo)
+			
+		}
+		
+	}
+	
+	
 	// MARK: Actions
+
 	@IBAction func selectImageFromPhotoLibrary(sender: UITapGestureRecognizer) {
 		// Hide the keyboard
 		nameTextField.resignFirstResponder()
